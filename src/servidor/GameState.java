@@ -11,18 +11,19 @@ import java.util.Map;
 
 public class GameState {
 
-    private final String idSala;
+    private final int idSala;
     private final int numEquipasEsperadas;
-    private final int jogadoresPorEquipa = 2;
+    private final int jogadoresPorEquipa;
     private Map<String, Equipa> equipas;
     private Map<String, Jogador> jogadores;
     //private CaixaDeRespostas caixaDeRespostas;
     private List<Pergunta> listaDePerguntas;
     private int rondaAtual;
 
-    public GameState(String idSala, int numEquipas) {
+    public GameState(int idSala, int numEquipas, int numJogadores) {
         this.idSala = idSala;
         this.numEquipasEsperadas = numEquipas;
+        this.jogadoresPorEquipa = numJogadores;
         this.equipas = new HashMap<>();
         this.jogadores = new HashMap<>();
         //this.caixaDeRespostas = new CaixaDeRespostas();
@@ -49,7 +50,7 @@ public class GameState {
     }
     
   
-    public boolean adicionarJogador(String username, String idEquipa) {
+    public boolean adicionarJogador(String idEquipa, String username) {
         if (jogadores.containsKey(username)) {
             System.out.println("Erro (Sala " + idSala + "): Username " + username + " já existe.");
             return false;
@@ -85,13 +86,17 @@ public class GameState {
         
         if (jogadores.size() == totalJogadoresEsperados) {
             System.out.println("SALA " + idSala + " COMPLETA. O jogo vai começar!");
+            synchronized (this) {
+                this.notifyAll();
+            }
         }
         
         return true;
     }
     
-   
-    
+    public boolean salaCompleta() {
+        return jogadores.size() == numEquipasEsperadas * jogadoresPorEquipa;
+    }
 
     public int getNumJogadoresLigados() {
         return jogadores.size();

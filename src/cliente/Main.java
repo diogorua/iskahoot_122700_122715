@@ -34,7 +34,7 @@ public class Main {
      System.out.println("[Servidor] " + perguntasDoJogo.size() + " perguntas carregadas.");
 
      System.out.println("[Servidor] A criar sala 'salaTeste' para 1 equipa...");
-     sala = new GameState("salaTeste", 1);
+     sala = new GameState(0, 1, 2);
      sala.carregarPerguntas(perguntasDoJogo);
      sala.adicionarJogador("jogador1", "equipaA");
      sala.adicionarJogador("jogador2", "equipaA");
