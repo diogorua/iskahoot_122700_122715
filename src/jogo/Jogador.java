@@ -1,4 +1,4 @@
-package servidor;
+package jogo;
 
 public class Jogador {
 	

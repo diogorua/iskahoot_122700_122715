@@ -1,4 +1,4 @@
-package servidor;
+package jogo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,10 +42,10 @@ public class Equipa {
 	
 	
 	/**
-	 * Numa fase mais avançada este método terá de ser synchronized para evitar que duas threads
+	 * Este método tem de ser synchronized para evitar que duas threads
 	 * de jogadores da mesma equipa alterem os pontos ao mesmo tempo
 	 */
-	public void adicionarPontos(int pontos) {
+	public synchronized void adicionarPontos(int pontos) {
 		this.pontuacaoTotal += pontos;
 	}
 	

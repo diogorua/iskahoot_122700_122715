@@ -1,14 +1,16 @@
 package servidor;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
+import jogo.GameState;
+import perguntas.LerPerguntas;
+import perguntas.Quiz;
 
 public class Servidor {
 
@@ -41,13 +43,15 @@ public class Servidor {
         }
     }
     
+    
     private void waitForConnection() throws IOException {
 		Socket connection = server.accept();
-		ConnectionHandler handler = new ConnectionHandler (connection, salas);
+		DealWithClient handler = new DealWithClient(connection, salas);
 		handler.start();
 		System.out.println("[SERVIDOR] Nova Conexão...");
 	}
 
+    
     private void menuAdmin() {
         Scanner sc = new Scanner(System.in);
 
@@ -72,79 +76,22 @@ public class Servidor {
 
     private void criarSala(int equipas, int jogadores) {
         GameState gs = new GameState(proximoID, equipas, jogadores);
+        
+        List<Quiz> quizzes = LerPerguntas.carregarQuizzesDoFicheiro("perguntas.json");
+        
+        if (!quizzes.isEmpty()) {
+            gs.carregarPerguntas(quizzes.get(0).getQuestions());
+            System.out.println("[SERVIDOR] Perguntas carregadas para a sala " + proximoID);
+        } else {
+            System.err.println("[SERVIDOR] ERRO CRÍTICO: Não foi possível carregar perguntas! O ficheiro está vazio");
+        }
+        
+        
         salas.put(proximoID, gs);
         System.out.println("[SERVIDOR] Sala criada com ID = " + proximoID);
         proximoID++;
     }
 
-    private class ConnectionHandler extends Thread {
-        private Socket connection;
-        private Scanner in;
-        private PrintWriter out;
-        private Map<Integer, GameState> salas;
-
-        public ConnectionHandler(Socket connection, Map<Integer, GameState> salas) {
-            this.connection = connection;
-            this.salas = salas;
-        }
-
-        @Override
-        public void run() {
-            try {
-                setStreams();
-                processConnection();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                closeConnection();
-            }
-        }
-
-        private void setStreams() throws IOException {
-            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(connection.getOutputStream())), true);
-            in = new Scanner(connection.getInputStream());
-        }
-
-        private void processConnection() {
-            try {
-                String msg = in.nextLine();
-
-                String[] parts = msg.split(" ");
-                int salaID = Integer.parseInt(parts[0]);
-
-                if (!salas.containsKey(salaID)) {
-                    out.println("ERRO: Sala não existe.");
-                    return;
-                }
-
-                GameState gs = salas.get(salaID);
-                gs.adicionarJogador(parts[1], parts[2]);
-
-                out.println("Ligado com sucesso à sala " + salaID);
-                
-                synchronized (gs) {
-                    while (!gs.salaCompleta()) {
-                        gs.wait();
-                    }
-                }
-
-                out.println("JOGO_A_COMECAR");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void closeConnection() {
-            try {
-                if (connection != null) connection.close();
-                if (in != null) in.close();
-                if (out != null) out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     public static void main(String[] args) {
         Servidor server = new Servidor();

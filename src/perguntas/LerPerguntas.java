@@ -1,6 +1,7 @@
-package servidor;
+package perguntas;
 
-import com.google.gson.Gson; 
+import com.google.gson.Gson;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;

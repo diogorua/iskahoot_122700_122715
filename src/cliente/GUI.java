@@ -3,6 +3,9 @@ package cliente;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+import perguntas.Pergunta;
+
 import java.util.List;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -17,12 +20,12 @@ public class GUI {
     private JLabel lblQuestion;
     private JLabel lblTimer;
     private JLabel lblPlayerName;
-    private JLabel lblScore;
+    private JTextArea txtPlacar;
     
     private javax.swing.Timer swingTimer;
     private int tempoRestante;
     
-    private Main main;
+    private Cliente cliente;
 
     public GUI() {
         frame = new JFrame("IsKahoot");
@@ -32,7 +35,7 @@ public class GUI {
         frame.getContentPane().setBackground(new Color(245, 245, 245));
         
         addContent();
-        
+      
         ActionListener timerListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -42,20 +45,23 @@ public class GUI {
                 } else {
                     swingTimer.stop();
                     lblTimer.setText("Tempo: 0s");
-                    handleAnswerSelection(null);
+                    //se passam os 30s e o jogador nao responde, entao envia -1 (erro)
+                    handleAnswerSelection(-1);
                 }
             }
         };
         
         swingTimer = new javax.swing.Timer(1000, timerListener);
         
-        frame.setSize(450,400);
+        frame.setSize(650,450);
         frame.setResizable(false);
         frame.setLocationRelativeTo(null);
     }
+    
+   
 
-    public void setMain(Main main) {
-        this.main = main;
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 
     public void open() {
@@ -65,6 +71,41 @@ public class GUI {
     public void close() {
     	frame.dispose();
     }
+    
+    
+    // Metodo principal chamado pelo Cliente quando chega uma nova pergunta
+    public void showQuestion(Pergunta p) {
+        lblQuestion.setText("<html><center>" + p.getQuestion() + "</center></html>");
+        
+        List<String> opcoes = p.getOptions();
+        for (int i = 0; i < optionButtons.length; i++) {
+            if (i < opcoes.size()) {
+                optionButtons[i].setText(opcoes.get(i));
+                optionButtons[i].setEnabled(true);
+                optionButtons[i].setVisible(true);
+            } else {
+                optionButtons[i].setVisible(false);
+            }
+        }
+        
+        this.answered = false;
+
+        this.tempoRestante = 30;
+        lblTimer.setText("Tempo: 30s");
+        swingTimer.restart();
+    }
+    
+    
+    public void atualizarPlacar(String textoPlacar) {
+        txtPlacar.setText(textoPlacar);
+    }
+
+
+    public void setTextPlayerAndTeam(String nome, String equipa) {
+        lblPlayerName.setText("Jogador: " + nome + " -" + " Equipa: " + equipa);
+    }
+    
+    
 
     public void startTimer(int segundos) {
         this.tempoRestante = segundos;
@@ -75,6 +116,14 @@ public class GUI {
         }
         swingTimer.start();
     }
+    
+    
+    private void bloquearBotoes() {
+        for (JButton btn : optionButtons) {
+            btn.setEnabled(false);
+        }
+    }
+    
     
     private void addContent() {
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -93,7 +142,7 @@ public class GUI {
         infoPanel.add(lblTimer);
         
         lblQuestion = new JLabel("A aguardar início do jogo...", SwingConstants.CENTER);
-        lblQuestion.setFont(new Font("Arial", Font.BOLD, 20));
+        lblQuestion.setFont(new Font("Arial", Font.BOLD, 18));
         lblQuestion.setBorder(new EmptyBorder(20, 0, 10, 0));
         
         topPanel.add(infoPanel, BorderLayout.NORTH);
@@ -106,30 +155,47 @@ public class GUI {
         painelGrid.setBackground(new Color(245, 245, 245));
         
         optionButtons = new JButton[4];
-        optionButtons[0] = createOptionButton("...", new Color(255, 92, 92));
-        optionButtons[1] = createOptionButton("...", new Color(92, 153, 255));
-        optionButtons[2] = createOptionButton("...", new Color(255, 204, 92));
-        optionButtons[3] = createOptionButton("...", new Color(120, 220, 130));
+        optionButtons[0] = createOptionButton(0, new Color(255, 92, 92));
+        optionButtons[1] = createOptionButton(1, new Color(92, 153, 255));
+        optionButtons[2] = createOptionButton(2, new Color(255, 204, 92));
+        optionButtons[3] = createOptionButton(3, new Color(120, 220, 130));
         
         for (JButton btn : optionButtons)
             painelGrid.add(btn);
         
         frame.add(painelGrid, BorderLayout.CENTER);
         
+        
+        JPanel sidePanel = new JPanel(new BorderLayout());
+        sidePanel.setBorder(new EmptyBorder(10, 0, 10, 15));
+        sidePanel.setBackground(new Color(245, 245, 245));
+        sidePanel.setPreferredSize(new Dimension(180, 0));
+        
+        JLabel lblTituloPlacar = new JLabel("Classificação", SwingConstants.CENTER);
+        lblTituloPlacar.setFont(new Font("Arial", Font.BOLD, 14));
+        sidePanel.add(lblTituloPlacar, BorderLayout.NORTH);
+        
+        txtPlacar = new JTextArea();
+        txtPlacar.setEditable(false);
+        txtPlacar.setBackground(new Color(255, 255, 240));
+        txtPlacar.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        txtPlacar.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        txtPlacar.setText("A aguardar...");
+        
+        sidePanel.add(txtPlacar, BorderLayout.CENTER);
+        frame.add(sidePanel, BorderLayout.EAST);
+        
+        
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBorder(new EmptyBorder(10, 15, 15, 15));
         bottomPanel.setBackground(new Color(245, 245, 245));
         
-        lblScore = new JLabel("Pontuação da equipa: 0", SwingConstants.CENTER);
-        lblScore.setFont(new Font("Arial", Font.PLAIN, 14));
-        
-        bottomPanel.add(lblScore);
-        
         frame.add(bottomPanel, BorderLayout.SOUTH);
     }
     
-    private JButton createOptionButton(String text, Color bgColor) {
-        JButton btn = new JButton(text);
+    
+    private JButton createOptionButton(int indice, Color bgColor) {
+        JButton btn = new JButton("...");
         btn.setFont(new Font("Arial", Font.BOLD, 14));
         btn.setForeground(Color.WHITE);
         btn.setBackground(bgColor);
@@ -151,54 +217,41 @@ public class GUI {
             }
         });
         
-        btn.addActionListener(e -> handleAnswerSelection(btn));
+        btn.addActionListener(e -> handleAnswerSelection(indice));
         
         return btn;
     }
     
-    private void handleAnswerSelection(JButton clickedButton) {
-        if (answered) return;
+    
+    private void handleAnswerSelection(int indiceBotao) {
+    	if (answered) return; 
         answered = true;
         
-        swingTimer.stop();
+        swingTimer.stop(); 
+        bloquearBotoes(); 
         
-        if (clickedButton != null) {
-            System.out.println("[GUI] Resposta enviada: " + clickedButton.getText());
-        } else {
-            System.out.println("[GUI] Tempo esgotado!");
+        // Enviar o indice da resposta para o servidor
+        if (cliente != null) {
+        	if (indiceBotao == -1) {
+                System.out.println("[GUI] Tempo esgotado! A enviar Timeout (-1) ao servidor...");
+            } else {
+                System.out.println("[GUI] O jogador escolheu a opção: " + indiceBotao);
+            }
+            cliente.sendAnswer(indiceBotao);
         }
+    }
+ 
+    
+    public void mostrarFimDeJogo(String placarFinal) {
+        atualizarPlacar(placarFinal);
         
-        for (JButton btn : optionButtons) {
-            btn.setEnabled(false);
-        }
 
-        if (main != null) {
-            Timer delay = new Timer(1000, e -> 
-                main.onRespostaSubmetida()
-            );
-            delay.setRepeats(false);
-            delay.start();
-        }
-    }
-    
-    public void setTextQuestion(String texto) {
-        lblQuestion.setText("<html><center>" + texto + "</center></html>"); 
-    }
-    
-    public void setTextButtons(List<String> opcoes) {
-        if (opcoes != null && opcoes.size() == 4) {
-            optionButtons[0].setText(opcoes.get(0));
-            optionButtons[1].setText(opcoes.get(1));
-            optionButtons[2].setText(opcoes.get(2));
-            optionButtons[3].setText(opcoes.get(3));
-        }
-    }
+        JOptionPane.showMessageDialog(frame, 
+            "JOGO TERMINADO!\n\n" + placarFinal,
+            "Fim do Jogo",
+            JOptionPane.INFORMATION_MESSAGE);
 
-    public void setTextPlayer(String nome) {
-        lblPlayerName.setText("Jogador: " + nome);
+        close();
     }
     
-    public void setTextPoints(String texto) {
-        lblScore.setText(texto);
-    }
 }
