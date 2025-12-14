@@ -53,7 +53,7 @@ public class GUI {
         
         swingTimer = new javax.swing.Timer(1000, timerListener);
         
-        frame.setSize(650,450);
+        frame.setSize(850,550);
         frame.setResizable(false);
         frame.setLocationRelativeTo(null);
     }
@@ -80,7 +80,7 @@ public class GUI {
         List<String> opcoes = p.getOptions();
         for (int i = 0; i < optionButtons.length; i++) {
             if (i < opcoes.size()) {
-                optionButtons[i].setText(opcoes.get(i));
+            	optionButtons[i].setText("<html><center>" + opcoes.get(i) + "</center></html>");
                 optionButtons[i].setEnabled(true);
                 optionButtons[i].setVisible(true);
             } else {

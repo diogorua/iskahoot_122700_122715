@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import jogo.GameState;
 
@@ -16,10 +17,12 @@ public class DealWithClient extends Thread implements ClientHandler {
     private ObjectOutputStream out;
     private Map<Integer, GameState> salas;
     private String username;
+    private ExecutorService poolSalas;
 
-    public DealWithClient(Socket connection, Map<Integer, GameState> salas) {
+    public DealWithClient(Socket connection, Map<Integer, GameState> salas, ExecutorService poolSalas) {
         this.connection = connection;
         this.salas = salas;
+        this.poolSalas = poolSalas;
     }
 
     @Override
@@ -69,19 +72,17 @@ public class DealWithClient extends Thread implements ClientHandler {
 
         out.writeObject("Ligado com sucesso à sala " + salaID);
         
-        // obtem o cadeado do objeto GameState
-        synchronized (gs) {
-            while (!gs.salaCompleta()) {
-                try {
-                	//cada thread DealWithClient fica bloqueada a espera que o jogue comece (sala completa)
-                    gs.wait();
-                } catch (InterruptedException e) {
-                    return;
-                }
-            }
+        if (gs.salaCompleta()) {
+            poolSalas.submit(gs::iniciarCicloDeJogo);
+        }
+        
+        try {
+            gs.esperarSalaCheia();
+        } catch (InterruptedException e) {
+            return;
         }
 
-        out.writeObject("JOGO_A_COMECAR");
+        out.writeObject("JOGO_VAI_COMECAR");
 
         // Receber Respostas
         System.out.println("[DealWithClient " + username + "] À espera de respostas...");
@@ -137,7 +138,7 @@ public class DealWithClient extends Thread implements ClientHandler {
     
     @Override
     public void onFimDeJogo(String placarFinal) {
-        enviarObjeto("FIM:" + placarFinal);
+        enviarObjeto("FIM: " + placarFinal);
  
         closeConnection();
 

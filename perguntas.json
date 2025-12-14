@@ -1,83 +1,83 @@
 {
   "quizzes": [
     {
-      "name": "PCD-1",
+      "name": "Quiz de AOT",
       "questions": [
 		{
-	      "question": "O que é uma thread?",
-	      "correct": 3,
+	      "question": "Em que ano os titãs atacaram pela primeira vez em 100 anos?",
+	      "correct": 0,
 	      "points": 5,
 	      "options": [
-	        "Processo",
-	        "Aplicação",
-	        "Programa",
-	        "Processo Ligeiro"
+	        "845",
+	        "843",
+	        "852",
+	        "849"
 	      ]
 	    },
 	    {
-	      "question": "Qual destas opções não é um método bloqueante?",
+	      "question": "Qual é o lema do Corpo de Exploração?",
+	      "correct":1,
+	      "points": 5,
+	      "options": [
+	        "Avançar custe o que custar",
+	        "Dedica o teu coração",
+	        "Liberdade acima de tudo",
+	        "Nunca recuar"
+	      ]
+	    },
+	    {
+	      "question": "Qual é o apelido de Jean?",
 	      "correct": 2,
 	      "points": 5,
 	      "options": [
-	        "join()",
-	        "sleep(\u003Cmillis\u003E)",
-	        "interrupted()",
-	        "wait()"
+	        "Hoover",
+	        "Leonhart",
+	        "Kirstein",
+	        "Springer"
 	      ]
 	    },
 	    {
-	      "question": "Qual é a vantagem de usar ThreadLocalRandom.current().nextInt() em vez de Random().nextInt()?",
-	      "correct": 0,
-	      "points": 3,
+	      "question": "O que acontece com o poder de um Titã Inteligente se o portador morrer sem ser devorado?",
+	      "correct": 1,
+	      "points": 5,
 	      "options": [
-	        "Para garantir que outras threads não usem a mesma seed na geração de números aleatórios",
-	        "Para outros programadores saberem quem chama aquela função é uma thread",
-	        "Para o JVM saber que o programa que chama a função é uma thread",
+	        "Desaparece",
+	        "Reencarna num bebé eldiano aleatório",
+	        "É herdado pelo rei",
 	        "Nenhuma das anteriores"
 	      ]
 	    },
 	    {
-	      "question": "Qual é o número máximo de threads que podem existir num sistema operativo?",
-	      "correct": 3,
-	      "points": 5,
-	      "options": [
-	        "Duas vezes o número de cores",
-	        "Igual ao número de cores",
-	        "16 mil threads",
-	        "Não existe limite"
-	      ]
-	    },
-	    {
-	      "question": "Qual o nome do primeiro animal a ir ao espaço?",
+	      "question": "Quem foi a primeira pessoa a herdar o Titã Fundador dentro das muralhas?",
 	      "correct": 0,
 	      "points": 5,
 	      "options": [
-	        "Laika",
-	        "Gagarin",
-	        "Max",
-	        "Macaco Tião"
+	        "Karl Fritz",
+	        "Frieda Reiss",
+	        "Ymir Fritz",
+	        "Uri Reiss"
 	      ]
 	    },
 	    {
-	      "question": "Como se chamava a esposa de William Shakespeare?",
+	      "question": "Quantos anos de vida tem um herdeiro de Titã Inteligente?",
 	      "correct": 3,
 	      "points": 5,
 	      "options": [
-	        "Sandra Bullock",
-	        "Kate Winslet",
-	        "Parker Posey",
-	        "Anne Hathaway"
+	        "9",
+	        "10",
+	        "5",
+	        "13"
 	      ]
 	    },
 	    {
-	      "question": "Qual o político português que liderou o maior número de governos depois do 25 de Abril?",
-	      "correct": 1,
+	      "question": "Qual o melhor personagem de AOT?",
+	      "correct": 3,
 	      "points": 5,
 	      "options": [
-	        "Cavaco Silva",
-	        "Vasco Gonçalves",
-	        "Mário Soares",
-	        "Francisco Balsemão"
+	        "Eren",
+	        "Armin",
+	        "Reiner",
+	        "Erwin"
 	      ]
 	    }
       ]

@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import coordenacao.CyclicBarrier;
 import coordenacao.ModifiedCountdownLatch;
@@ -31,6 +34,9 @@ public class GameState {
     private ModifiedCountdownLatch fimDaRondaEquipaLatch;
     private CaixaDeRespostas caixaDeRespostas;
     
+    private final Lock lock = new ReentrantLock();
+    private final Condition salaCheia = lock.newCondition();
+    
     private long tempoInicioRonda;
     
     
@@ -49,7 +55,7 @@ public class GameState {
    
     public void carregarPerguntas(List<Pergunta> perguntas) {
         this.listaDePerguntas = perguntas;
-    }
+    }	
     
     
     // Seccao critica: metodo sincronizado para garantir exclusao mutua 
@@ -92,19 +98,29 @@ public class GameState {
         if (jogadores.size() == totalJogadoresEsperados) {
             System.out.println("SALA " + idSala + " COMPLETA. O jogo vai começar!");
             
-            // o ultimo jogador ao entrar nesta sala, representado pela thread DealWithCliente, vai criar outra thread que vai correr em paralelo (ciclo do jogo)
-            new Thread(this::iniciarCicloDeJogo).start();
-            
-            // a thread do ultimo jogador acorda todas as outras que estavam a espera que o jogo comecasse
-            synchronized (this) {
-                this.notifyAll();
+            lock.lock();
+            try {
+                salaCheia.signalAll();
+            } finally {
+                lock.unlock();
             }
+
         }
         
         return true;
     }
     
-    
+    public void esperarSalaCheia() throws InterruptedException {
+        lock.lock();
+        try {
+            while (!salaCompleta()) {
+                salaCheia.await();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     
     public void iniciarCicloDeJogo() {
         System.out.println("[GameState " + idSala + "] Início do ciclo de jogo.");
@@ -140,11 +156,12 @@ public class GameState {
                 	// que nao respondeu executava igualmente o Runnable
                 	final boolean[] acaoJaExecutada = {false};
                 	Runnable barrierAction = () -> {
-                		synchronized (acaoJaExecutada) {
-                            if (acaoJaExecutada[0]) {
-                                return;
-                            }
+                		lock.lock();
+                		try {
+                            if (acaoJaExecutada[0]) return;
                             acaoJaExecutada[0] = true;
+                        } finally {
+                        	lock.unlock();
                         }
                         
                         System.out.println("[Barreira " + equipa.getIdEquipa() + "] Equipa terminou. A calcular pontos...");
@@ -198,7 +215,7 @@ public class GameState {
 
         System.out.println("[GameState " + idSala + "] Fim do Jogo!");
         
-        String msgFinal = "FIM:" + gerarTextoPlacar();
+        String msgFinal = "Classificação:\n" + gerarTextoPlacar();
         for (ClientHandler handler : listeners) {
             handler.onFimDeJogo(msgFinal);
         }
@@ -255,15 +272,19 @@ public class GameState {
             boolean acertou = (indiceResposta == perguntaAtual.getCorrectOptionIndex());
             int pontosGanhos = 0;
 
-            int fatorBonus = modifiedLatch.countdown(); 
+            int fatorBonus = 1;
 
             if (acertou) {
+                fatorBonus = modifiedLatch.getBonusIfAvailable();
                 pontosGanhos = perguntaAtual.getPoints() * fatorBonus;
                 equipa.adicionarPontos(pontosGanhos);
                 System.out.println("Jogador " + username + " ACERTOU! (Bónus: " + fatorBonus + "x). Pontos: " + pontosGanhos);
             } else {
                 System.out.println("Jogador " + username + " errou.");
             }
+
+            modifiedLatch.countdown();
+
         }
     }
 

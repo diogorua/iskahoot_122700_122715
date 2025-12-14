@@ -22,23 +22,20 @@ public class ModifiedCountdownLatch {
 		this.deadline = System.currentTimeMillis() + (waitPeriod * 1000);
 	}
 	
-	public synchronized int countdown() {
-		count--;
-		
-		int fatorAtual = 1;
-		
-		if (bonusCount > 0) {
-			fatorAtual = bonusFactor;
-			bonusCount--;
-		}
-		
-		if (count == 0) {
-			notifyAll();
-		}
-		
-		return fatorAtual;
+	public synchronized void countdown() {
+	    count--;
+	    if (count == 0) {
+	        notifyAll();
+	    }
 	}
 	
+	public synchronized int getBonusIfAvailable() {
+	    if (bonusCount > 0) {
+	        bonusCount--;
+	        return bonusFactor;
+	    }
+	    return 1;
+	}
 	
 	// Thread do GameState vai bloquear a espera que o countdownLatch seja aberto
 	public synchronized void await() throws InterruptedException {

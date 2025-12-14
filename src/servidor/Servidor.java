@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import jogo.GameState;
 import perguntas.LerPerguntas;
@@ -19,6 +21,8 @@ public class Servidor {
     private ServerSocket server;
     private Map<Integer, GameState> salas = new HashMap<>();
     private int proximoID = 0;
+    private ExecutorService poolSalas = Executors.newFixedThreadPool(5);
+
 
     public void runServer() {
         try {
@@ -46,7 +50,7 @@ public class Servidor {
     
     private void waitForConnection() throws IOException {
 		Socket connection = server.accept();
-		DealWithClient handler = new DealWithClient(connection, salas);
+		DealWithClient handler = new DealWithClient(connection, salas, poolSalas);
 		handler.start();
 		System.out.println("[SERVIDOR] Nova Conexão...");
 	}
