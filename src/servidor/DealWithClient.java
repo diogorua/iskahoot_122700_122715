@@ -6,8 +6,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-
 import jogo.GameState;
+
 
 public class DealWithClient extends Thread implements ClientHandler {
 
@@ -73,6 +73,8 @@ public class DealWithClient extends Thread implements ClientHandler {
         out.writeObject("Ligado com sucesso à sala " + salaID);
         
         if (gs.salaCompleta()) {
+        	// o ultimo cliente a ligar se a sala vai pedir a thread pool para executar o metodo iniciarCicloDeJogo do objeto gs assim que
+        	// tiver uma thread livre
             poolSalas.submit(gs::iniciarCicloDeJogo);
         }
         

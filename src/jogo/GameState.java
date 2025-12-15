@@ -58,56 +58,57 @@ public class GameState {
     }	
     
     
-    // Seccao critica: metodo sincronizado para garantir exclusao mutua 
-    public synchronized boolean adicionarJogador(String idEquipa, String username, ClientHandler handler) {
-        if (jogadores.containsKey(username)) {
-            System.out.println("Erro (Sala " + idSala + "): Username " + username + " já existe.");
-            return false;
-        }
-        
-        int totalJogadoresEsperados = numEquipasEsperadas * jogadoresPorEquipa;
-        
-        if (jogadores.size() >= totalJogadoresEsperados) {
-            System.out.println("Erro (Sala " + idSala + "): Sala está cheia.");
-            return false;
-        }
-        
-        Equipa equipa = equipas.get(idEquipa);
-        
-        if (equipa == null) {
-            if (equipas.size() >= numEquipasEsperadas) {
-                System.out.println("Erro (Sala " + idSala + "): Número máximo de equipas atingido.");
+    // Seccao critica: metodo sincronizado para garantir exclusao mutua usando lock
+    public boolean adicionarJogador(String idEquipa, String username, ClientHandler handler) {
+    	lock.lock();
+    	
+    	try {
+    		if (jogadores.containsKey(username)) {
+                System.out.println("Erro (Sala " + idSala + "): Username " + username + " já existe.");
                 return false;
             }
-            equipa = new Equipa(idEquipa);
-            equipas.put(idEquipa, equipa);
-        }
-        
-        if (equipa.getNumeroMembros() >= jogadoresPorEquipa) {
-            System.out.println("Erro (Sala " + idSala + "): Equipa " + idEquipa + " está cheia.");
-            return false;
-        }
-        
-        Jogador novoJogador = new Jogador(username, idEquipa);
-        jogadores.put(username, novoJogador);
-        equipa.adicionarJogadores(novoJogador);
-        listeners.add(handler);
-        
-        System.out.println("Sucesso (Sala " + idSala + "): Jogador " + username + " entrou na equipa " + idEquipa);
-        
-        if (jogadores.size() == totalJogadoresEsperados) {
-            System.out.println("SALA " + idSala + " COMPLETA. O jogo vai começar!");
             
-            lock.lock();
-            try {
-                salaCheia.signalAll();
-            } finally {
-                lock.unlock();
+            int totalJogadoresEsperados = numEquipasEsperadas * jogadoresPorEquipa;
+            
+            if (jogadores.size() >= totalJogadoresEsperados) {
+                System.out.println("Erro (Sala " + idSala + "): Sala está cheia.");
+                return false;
             }
-
-        }
-        
-        return true;
+            
+            Equipa equipa = equipas.get(idEquipa);
+            
+            if (equipa == null) {
+                if (equipas.size() >= numEquipasEsperadas) {
+                    System.out.println("Erro (Sala " + idSala + "): Número máximo de equipas atingido.");
+                    return false;
+                }
+                equipa = new Equipa(idEquipa);
+                equipas.put(idEquipa, equipa);
+            }
+            
+            if (equipa.getNumeroMembros() >= jogadoresPorEquipa) {
+                System.out.println("Erro (Sala " + idSala + "): Equipa " + idEquipa + " está cheia.");
+                return false;
+            }
+            
+            Jogador novoJogador = new Jogador(username, idEquipa);
+            jogadores.put(username, novoJogador);
+            equipa.adicionarJogadores(novoJogador);
+            listeners.add(handler);
+            
+            System.out.println("Sucesso (Sala " + idSala + "): Jogador " + username + " entrou na equipa " + idEquipa);
+            
+            if (jogadores.size() == totalJogadoresEsperados) {
+                System.out.println("SALA " + idSala + " COMPLETA. O jogo vai começar!");
+                salaCheia.signalAll();
+            }
+            
+            return true;
+            
+    	} finally {
+    		lock.unlock();
+    	}
+     
     }
     
     public void esperarSalaCheia() throws InterruptedException {
